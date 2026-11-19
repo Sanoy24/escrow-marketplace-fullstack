@@ -6,6 +6,12 @@ Selected parts of a peer-to-peer marketplace I'm building, from the React screen
 
 > This is an excerpt, so it doesn't build on its own: imports such as `orders`, `listings`, `reviews` and shared UI components point to code that isn't included. Code comments that reference `docs/...` point to the private design docs. A walkthrough of the full app is available on request.
 
+| Listing with escrow | Live chat between buyer and seller | Order with payment held in escrow |
+|---|---|---|
+| ![Listing page](docs/screenshots/listing.png) | ![Chat](docs/screenshots/chat.png) | ![Order in escrow](docs/screenshots/order.png) |
+
+*Screenshots from a local run with demo accounts. The payment step was simulated in the local database, since Chapa's checkout needs a public webhook URL.*
+
 ## What's here
 
 | Module | What it does |
