@@ -1,10 +1,10 @@
-# Marketplace backend: escrow payments, real-time chat and auth (code excerpt)
+# Full-stack marketplace: escrow payments, real-time chat and auth (code excerpt)
 
-Selected modules from a peer-to-peer marketplace backend I'm building. The product itself lives in a private repository; this repo shows three of its hardest parts, copied as they are, with their tests.
+Selected parts of a peer-to-peer marketplace I'm building, from the React screens to the database. The product itself lives in a private repository; this repo shows three of its hardest features end to end, copied as they are, with their tests.
 
-**Stack:** NestJS (TypeScript), PostgreSQL with Drizzle ORM, Redis, BullMQ, Socket.io, Chapa payment gateway, Jest with Testcontainers.
+**Stack:** React + TypeScript (Vite, Tailwind, shadcn/ui) on the frontend; NestJS (TypeScript), PostgreSQL with Drizzle ORM, Redis, BullMQ, Socket.io and the Chapa payment gateway on the backend; Jest with Testcontainers.
 
-> This is an excerpt, so it doesn't build on its own: imports such as `orders`, `listings` and `reviews` point to modules that aren't included. Code comments that reference `docs/...` point to the private design docs. A walkthrough of the full app is available on request.
+> This is an excerpt, so it doesn't build on its own: imports such as `orders`, `listings`, `reviews` and shared UI components point to code that isn't included. Code comments that reference `docs/...` point to the private design docs. A walkthrough of the full app is available on request.
 
 ## What's here
 
@@ -15,6 +15,7 @@ Selected modules from a peer-to-peer marketplace backend I'm building. The produ
 | [`src/messaging`](src/messaging) | Real-time buyer-seller chat over Socket.io, with REST history endpoints |
 | [`src/auth`](src/auth) | Phone sign-up with one-time codes, password login, Google and Facebook login, refresh-token rotation |
 | [`db/schema`](db/schema) | The tables these modules use |
+| [`frontend/src`](frontend/src) | The matching React screens: sign-up and login, paying via escrow, the order page with confirm-receipt and dispute, and live chat |
 | [`test`](test) | 47 end-to-end tests for escrow, chat and auth against real Postgres and Redis (Testcontainers), plus 18 unit tests next to the code |
 
 ```mermaid
@@ -44,6 +45,14 @@ flowchart LR
 **Chat authenticates before the socket exists.** The JWT check runs as Socket.io connection middleware, not in a connection hook, so a fast client can't send a message before verification finishes. It uses the same token verification as the HTTP API, and the Redis adapter lets chat work across several server instances. See [`messaging.gateway.ts`](src/messaging/messaging.gateway.ts) and [`redis-io.adapter.ts`](src/messaging/redis-io.adapter.ts).
 
 **Refresh tokens rotate, and reuse revokes the whole family.** Each refresh issues a new token in the same family; presenting an already-used token is treated as theft and revokes every token in that family. A password reset revokes all sessions. One-time codes and refresh tokens are stored hashed, and phone numbers are normalized to E.164 at the edge so the same person can't create duplicate accounts. See [`auth.service.ts`](src/auth/auth.service.ts) and [`phone.util.ts`](src/common/phone/phone.util.ts).
+
+## Frontend
+
+**Tokens never sit in browser storage.** The access token lives only in memory, and the refresh token is an httpOnly cookie the JavaScript can't read. On page load the app silently refreshes from the cookie. When several requests hit an expired token at once, they share a single refresh call instead of each starting one, so token rotation on the backend never sees a false "reuse". See [`api-client.ts`](frontend/src/lib/api-client.ts) and [`auth-context.tsx`](frontend/src/lib/auth-context.tsx).
+
+**Chat connects straight to the backend with the same token.** The chat panel opens the Socket.io connection with the in-memory access token in the handshake, which the backend checks before the socket exists. See [`chat-panel.tsx`](frontend/src/components/chat-panel.tsx) and [`messages-page.tsx`](frontend/src/pages/messages-page.tsx).
+
+**The order page follows the escrow state.** It shows the escrow status, and the buyer's actions (confirm receipt, raise a dispute, leave a review) refetch the order afterwards, so the screen always reflects what the server decided. See [`order-detail-page.tsx`](frontend/src/pages/order-detail-page.tsx), [`pay-via-escrow-form.tsx`](frontend/src/components/pay-via-escrow-form.tsx) and [`dispute-form.tsx`](frontend/src/components/dispute-form.tsx).
 
 ## Tests
 
