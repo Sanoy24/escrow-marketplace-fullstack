@@ -10,7 +10,7 @@ Selected parts of a peer-to-peer marketplace I'm building, from the React screen
 |---|---|---|
 | ![Listing page](docs/screenshots/listing.png) | ![Chat](docs/screenshots/chat.png) | ![Order in escrow](docs/screenshots/order.png) |
 
-*Screenshots from a local run with demo accounts. The full payment flow has also been tested end to end in Chapa's test mode: a real test checkout, the signed webhook delivered through a public tunnel, and the escrow moving to `held` on its own.*
+*Screenshots from a local run with demo accounts. The full payment flow has also been tested end to end in Chapa's test mode: a real test checkout confirmed by Chapa's API, a signed webhook for that payment sent through a public tunnel, and the escrow moving to `held` on its own.*
 
 ## What's here
 
